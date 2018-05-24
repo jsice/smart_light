@@ -1,66 +1,49 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableHighlight } from 'react-native';
+import { Platform, View, TabBarIOS, Text } from 'react-native';
+import ScrollableTabView, {DefaultTabBar, } from 'react-native-scrollable-tab-view';
+
+import LightBulb from './LightBulb'
+import Ultrasonic from './Ultrasonic'
 
 export default class App extends React.Component {
 
   state = {
-    lightIsOn: 0
-  }
-
-  componentWillMount() {
-    fetch('http://158.108.138.46:2403/status/05e1f6adbf864b39')
-    .then(res=>res.json())
-    .then(state=>this.setState(state))
-  }
-
-  toggleLight() {
-    const new_state = {
-      lightIsOn: 1-this.state.lightIsOn
-    }
-    this.setState(new_state)
-    fetch('http://158.108.138.46:2403/status/05e1f6adbf864b39', {
-      method: 'put',
-      headers: {
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify(new_state)
-    })
+    selectedTab: 0,
+    tabs: [
+      'light',
+      'ultrasonic'
+    ]
   }
 
   render() {
-    return (
-      <View style={styles.container}>
-        <Text>Light Bulb 4.0</Text>
-        <TouchableHighlight onPress={() => this.toggleLight()}>
-            {this.state.lightIsOn===1
-              ? <Image 
-              style={styles.imagestyle} 
-              source={{
-                uri: 'https://www.w3schools.com/js/pic_bulbon.gif'
-              }} 
-              />
-              : <Image 
-              style={styles.imagestyle} 
-              source={{
-                uri: 'https://www.w3schools.com/js/pic_bulboff.gif'
-              }} 
-              />
-            }
-        </TouchableHighlight>
-      </View>
-    );
+    const ios = (
+      <TabBarIOS selectedTab={this.state.selectedTab}>
+        <TabBarIOS.Item 
+        selected={this.state.selectedTab===0}
+        onPress={()=>this.setState({selectedTab:0})}
+        title={'light'}
+        >
+          {this.state.selectedTab===0 ? <LightBulb /> : null }
+        </TabBarIOS.Item>
+        <TabBarIOS.Item 
+        selected={this.state.selectedTab===1}
+        onPress={()=>this.setState({selectedTab:1})}
+        title={'ultrasonic'}
+        >
+          {this.state.selectedTab===1 ? <Ultrasonic /> : null }
+        </TabBarIOS.Item>
+      </TabBarIOS>
+    )
+    const android = (
+      <ScrollableTabView
+        style={{marginTop: 20, }}
+        initialPage={1}
+        renderTabBar={() => <DefaultTabBar />}
+      >
+        <LightBulb tabLabel='light' />
+        <Ultrasonic tabLabel='ultrasonic' />
+      </ScrollableTabView>
+    )
+    return Platform.OS === 'ios' ? ios : android
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imagestyle: {
-    width: 100,
-    height: 200
-  }
-});
